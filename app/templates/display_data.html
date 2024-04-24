@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgba(167,168,172,255);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column; /* Align content vertically */
+            color: white
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 80vh; /* Fixed height for the container */
+            overflow-y: auto; /* Enable vertical scrollbar if needed */
+        }
+
+        #row {
+            text-align: center;
+        }
+
+        #row p {
+            margin: 10px 0;
+        }
+
+        #stopButton {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #stopButton.stop {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        #stopButton.continue {
+            background-color: #0c8447;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <button id="stopButton" class="stop">Stop</button>
+        <div id="row"></div>
+    </div>
+
+    <script>
+        var stopButton = document.getElementById('stopButton');
+        var stopDisplay = false;
+
+        stopButton.onclick = function() {
+            stopDisplay = !stopDisplay; // Toggle stopDisplay value
+            if (stopDisplay) {
+                stopButton.textContent = 'Continue';
+                stopButton.classList.remove('stop');
+                stopButton.classList.add('continue');
+            } else {
+                stopButton.textContent = 'Stop';
+                stopButton.classList.remove('continue');
+                stopButton.classList.add('stop');
+                displayNextRow();
+            }
+        };
+
+        var data = {{ data | tojson }};
+        var htmlContent = "";
+        var index = 0;
+
+        function displayNextRow() {
+            if (index < data.length && !stopDisplay) {
+                htmlContent += "<p>" + data[index].join(', ') + "</p>";
+                document.getElementById('row').innerHTML = htmlContent;
+                index++;
+                setTimeout(displayNextRow, 2000); // Delay of 2 seconds
+            }
+        }
+
+        displayNextRow();
+    </script>
+</body>
+</html>
