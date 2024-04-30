@@ -13,16 +13,39 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            flex-direction: column; /* Align content vertically */
             color: white;
+            flex-direction: column; /* Align content vertically */
         }
 
         #container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            align-items: flex-start; /* Align items to the top */
             height: 80vh; /* Fixed height for the container */
             overflow-y: auto; /* Enable vertical scrollbar if needed */
+            width: 90%; /* Adjust width of the container */
+            margin-bottom: 20px;
+        }
+
+        #image-container {
+    text-align: center;
+    width: 50%; /* Set width for the image container */
+    position: sticky; /* Set position to sticky */
+    top: 0; /* Position at the top of the viewport */
+}
+
+        #image {
+            margin-top: 20px;
+            max-width: 100%; /* Limit image width to container width */
+            max-height: 70vh; /* Limit image height */
+        }
+
+        #row-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align rows to the left */
+            width: 50%; /* Set width for the row container */
+            overflow-y: auto; /* Enable vertical scrollbar if needed */
+            padding: 20px; /* Add padding for spacing */
         }
 
         #row {
@@ -41,6 +64,8 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin-top: 10px; /* Adjust margin for spacing */
+            align-self: center; /* Center the button horizontally */
         }
 
         #stopButton.stop {
@@ -52,15 +77,7 @@
             background-color: #0c8447;
             color: white;
         }
-        #image {
-    margin-top: 20px;
-    max-width: 600px; /* Increase max-width for a larger image */
-    max-height: 600px; /* Increase max-height for a larger image */
-}
-        #image-container {
-            text-align: center;
-            width: 80%; /* Match the width of the row container */
-        }
+        
         .highlight {
             color: black;
             background-color: #f9e74f; /* Yellow background color for highlighting */
@@ -70,11 +87,13 @@
     </style>
 </head>
 <body>
+    <button id="stopButton" class="stop">Stop</button>
     <div id="container">
-        <button id="stopButton" class="stop">Stop</button>
-        <div id="rows-container"></div> <!-- Use a separate container for rows -->
         <div id="image-container">
             <img id="image" src="" alt="Dynamic Image">
+        </div>
+        <div id="row-container">
+            <!-- Row text will be dynamically added here -->
         </div>
     </div>
 
@@ -106,7 +125,7 @@
                 var img = document.getElementById('image');
                 img.src = images[index];
 
-                var rowContainer = document.getElementById('rows-container');
+                var rowContainer = document.getElementById('row-container');
                 var newRow = document.createElement('div');
                 newRow.setAttribute('id', 'row');
                 if (predict[index][0] == 1) {
