@@ -11,10 +11,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+import pickle
 
 
 # Create a Flask app
 app = Flask(__name__)
+
+with open('svc_model.pkl', 'rb') as file:
+    svc_model = pickle.load(file)
+
+# Load the StandardScaler
+with open('scaler.pkl', 'rb') as file:
+    scaler = pickle.load(file)
 
 # Define a route for the homepage
 @app.route('/')
@@ -28,34 +36,12 @@ def upload_file():
         if uploaded_file.filename.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(uploaded_file)
             data=df.values.tolist()
-            return make_predictions(generate_model(), df, data)
+            return make_predictions(df, data)
             # return render_template('display_data.html', data=df.values.tolist())
         else:
             return 'Error: Please upload an Excel file!'
     else:
         return 'Error: No file uploaded!'
-
-# Generate Model
-def generate_model():
-    #print('test')
-    model_df = pd.read_csv("Power_Consumption.csv")
-    minority_class = model_df[model_df['Label'] == 'benign']
-    majority_class = model_df[model_df['Label'] == 'attack']
-    minority_upsampled = resample(minority_class, replace=True, n_samples=26726, random_state=101)
-    majority_downsampled = resample(majority_class, replace=False, n_samples=26726, random_state=101)
-    model_df = pd.concat([majority_downsampled, minority_upsampled])
-    cs = pd.get_dummies(model_df['State'], drop_first = False)
-    model_df = pd.concat([model_df, cs], axis = 1)
-    model_df['Label'] = model_df[['Label']].apply(update_labels, axis = 1)
-    model_df.drop(['interface', 'Attack', 'idle', 'State', 'Attack-Group'], axis = 1, inplace = True)
-    scaler = StandardScaler()
-    X_val = model_df.drop(['time', 'Label'], axis = 1)
-    X_val = scaler.fit_transform(X_val)
-    y = model_df['Label']
-    X_train, X_test, y_train, y_test = train_test_split(X_val, y, test_size=0.3, random_state=101)
-    knn = KNeighborsClassifier(n_neighbors = 1)
-    knn.fit(X_train, y_train)
-    return knn #returns the model object to use in make_predictions
 
 def update_labels(cols):
     outcome = cols[0]
@@ -68,27 +54,25 @@ def convert_to_list(lst):
     return [[sublist[0].tolist(), sublist[1][0].tolist()] for sublist in lst]
 
 # Use Sample Data to make Predictions
-def make_predictions(model, df, data):
+def make_predictions(df, data):
     predictions = []
     image_files = []
     for i in range(len(df)):
-        sample = np.array(df.iloc[0:i+1].mean()).reshape(1, -1)
-        model_pred = model.predict(sample)
-        print(model_pred)
-        chances = model.predict_proba(sample) #predict_proba() returns a list of two values, if [0.1, 0.9] that means there is a 10% chance the sample belongs to group 0, and 90% it belongs to group 1
-        print(chances)
-        percent_chance = chances[0].tolist() #since proba() lists them in group order, the value of the group guess (model_pred) can be used to find the confidence for that group.
-        print(percent_chance)
-        model_pred = model_pred.tolist()
-        model_pred_list = [model_pred, percent_chance]
-        predictions.append(model_pred_list)
         image_file = make_graph(df.iloc[0:i+1], image_files)  # Generate the graph image
-        image_files.append(image_file)  # Append the image file name to the list
-        # time.sleep(2)
-    print(predictions)
-    predictions_json = [[elem[0], elem[1]] for elem in predictions]
+        image_files.append(image_file)
+    X = scaler.fit_transform(df)
+    # print(X)
+    #print(df.columns)  # No need to drop columns here
+    predictions = svc_model.predict(X)
+    confidence = svc_model.predict_proba(X)
+    # Convert predictions to Python int
+    print('predictions:', str(predictions))
+    print('confidence:', str(confidence))
+    confidence_percent = [[prob * 100 for prob in sample] for sample in confidence]
+    print('confidence:', str(confidence_percent))
     image_files = [f'/static/{image}' for image in image_files]
-    return render_template('display_data.html', predictions = predictions_json, data = data, images = image_files) #predictions is a nested list where the inner lists represent model's prediction at that point, as well as the model's confidence in that prediction.
+    predictions_json = [[prediction.tolist(), confidence.tolist()] for prediction, confidence in zip(predictions, confidence)]
+    return render_template('display_data.html', predictions=predictions_json, data=data, images = image_files)#predictions is a nested list where the inner lists represent model's prediction at that point, as well as the model's confidence in that prediction.
 
 def make_graph(values, image_files):
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(16, 12))

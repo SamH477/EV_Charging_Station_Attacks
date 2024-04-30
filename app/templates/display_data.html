@@ -14,7 +14,7 @@
             height: 100vh;
             margin: 0;
             flex-direction: column; /* Align content vertically */
-            color: white
+            color: white;
         }
 
         #container {
@@ -26,7 +26,7 @@
         }
 
         #row {
-            text-align: center;
+            text-align: left;
             width: 100%; /* Adjust the width of the row container */
             margin-bottom: 20px; /* Add some margin between rows */
         }
@@ -60,6 +60,12 @@
         #image-container {
             text-align: center;
             width: 80%; /* Match the width of the row container */
+        }
+        .highlight {
+            color: black;
+            background-color: #f9e74f; /* Yellow background color for highlighting */
+            padding: 2px 5px; /* Adjust padding for better appearance */
+            border-radius: 3px; /* Add border radius for rounded corners */
         }
     </style>
 </head>
@@ -110,8 +116,8 @@
                     + "current_mA: " + data[index][2] + ", "
                     + "power_mW: " + data[index][3] + ", "
                     + "charging: " + data[index][4] + ", "
-                    + "prediction: " + predict[index][0] + ", "
-                    + "confidence: " + predict[index][1][1]*100 + "%" 
+                    + "<span class='highlight'>prediction: " + predict[index][0] + "</span>, "
+                    + "<span class='highlight'>confidence: " + predict[index][1][1]*100 + "%</span>" 
                     + "</p>";
                 } else {
                     newRow.innerHTML = "<p>" 
@@ -120,8 +126,8 @@
                     + "current_mA: " + data[index][2] + ", "
                     + "power_mW: " + data[index][3] + ", "
                     + "charging: " + data[index][4] + ", "
-                    + "prediction: " + predict[index][0] + ", "
-                    + "confidence: " + predict[index][1][0]*100 + "%" 
+                    + "<span class='highlight'>prediction: " + predict[index][0] + "</span>, "
+                    + "<span class='highlight'>confidence: " + predict[index][1][0]*100 + "%</span>" 
                     + "</p>";
                 }
                 rowContainer.appendChild(newRow);
