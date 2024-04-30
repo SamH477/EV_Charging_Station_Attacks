@@ -27,6 +27,8 @@
 
         #row {
             text-align: center;
+            width: 100%; /* Adjust the width of the row container */
+            margin-bottom: 20px; /* Add some margin between rows */
         }
 
         #row p {
@@ -50,17 +52,34 @@
             background-color: #0c8447;
             color: white;
         }
+        #image {
+    margin-top: 20px;
+    max-width: 600px; /* Increase max-width for a larger image */
+    max-height: 600px; /* Increase max-height for a larger image */
+}
+        #image-container {
+            text-align: center;
+            width: 80%; /* Match the width of the row container */
+        }
     </style>
 </head>
 <body>
     <div id="container">
         <button id="stopButton" class="stop">Stop</button>
-        <div id="row"></div>
+        <div id="rows-container"></div> <!-- Use a separate container for rows -->
+        <div id="image-container">
+            <img id="image" src="" alt="Dynamic Image">
+        </div>
     </div>
 
     <script>
         var stopButton = document.getElementById('stopButton');
         var stopDisplay = false;
+        var data = {{ data | tojson }};
+        var predict = {{ predictions | tojson }};
+        var images = {{ images | tojson }};
+        var index = 0;
+        const features = ['shunt_voltage', 'bus_voltage_V', 'current_mA', 'power_mW']
 
         stopButton.onclick = function() {
             stopDisplay = !stopDisplay; // Toggle stopDisplay value
@@ -76,14 +95,37 @@
             }
         };
 
-        var data = {{ data | tojson }};
-        var htmlContent = "";
-        var index = 0;
-
         function displayNextRow() {
             if (index < data.length && !stopDisplay) {
-                htmlContent += "<p>" + data[index].join(', ') + "</p>";
-                document.getElementById('row').innerHTML = htmlContent;
+                var img = document.getElementById('image');
+                img.src = images[index];
+
+                var rowContainer = document.getElementById('rows-container');
+                var newRow = document.createElement('div');
+                newRow.setAttribute('id', 'row');
+                if (predict[index][0] == 1) {
+                    newRow.innerHTML = "<p>" 
+                    + "shunt_voltage: " + data[index][0] + ", "
+                    + "bus_voltage_V: " + data[index][1] + ", "
+                    + "current_mA: " + data[index][2] + ", "
+                    + "power_mW: " + data[index][3] + ", "
+                    + "charging: " + data[index][4] + ", "
+                    + "prediction: " + predict[index][0] + ", "
+                    + "confidence: " + predict[index][1][1]*100 + "%" 
+                    + "</p>";
+                } else {
+                    newRow.innerHTML = "<p>" 
+                    + "shunt_voltage: " + data[index][0] + ", "
+                    + "bus_voltage_V: " + data[index][1] + ", "
+                    + "current_mA: " + data[index][2] + ", "
+                    + "power_mW: " + data[index][3] + ", "
+                    + "charging: " + data[index][4] + ", "
+                    + "prediction: " + predict[index][0] + ", "
+                    + "confidence: " + predict[index][1][0]*100 + "%" 
+                    + "</p>";
+                }
+                rowContainer.appendChild(newRow);
+
                 index++;
                 setTimeout(displayNextRow, 2000); // Delay of 2 seconds
             }
